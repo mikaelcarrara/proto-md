@@ -4,9 +4,8 @@ Valida outputs do modelo contra schemas JSON Schema definidos nos protocolos
 """
 
 import json
-import jsonschema
-from typing import Dict, Any, List, Optional, Union
-from jsonschema import validate, ValidationError, Draft7Validator
+from typing import Dict, Any, List, Optional
+from jsonschema import Draft7Validator
 from dataclasses import dataclass
 
 @dataclass
@@ -94,15 +93,14 @@ class SchemaValidator:
                             errors.append(f"Propriedade '{prop_name}' muito longa: {len(prop_value)} > {prop_schema['maxLength']}")
                     
                     # Validar ranges numéricos
-                    elif prop_schema.get('type') == 'number':
+                    elif prop_schema.get('type') in ['number', 'integer']:
                         if 'minimum' in prop_schema and prop_value < prop_schema['minimum']:
                             errors.append(f"Propriedade '{prop_name}' abaixo do mínimo: {prop_value} < {prop_schema['minimum']}")
                         
                         if 'maximum' in prop_schema and prop_value > prop_schema['maximum']:
                             errors.append(f"Propriedade '{prop_name}' acima do máximo: {prop_value} > {prop_schema['maximum']}")
                     
-                    # Validar enums
-                    elif 'enum' in prop_schema and prop_value not in prop_schema['enum']:
+                    if 'enum' in prop_schema and prop_value not in prop_schema['enum']:
                         errors.append(f"Propriedade '{prop_name}' tem valor inválido: {prop_value} não está em {prop_schema['enum']}")
         
         # Validar estrutura de arrays
@@ -242,7 +240,8 @@ class SchemaValidator:
         
         try:
             # Tentar criar um validator com o schema
-            validator = self.validator(schema)
+            self.validator.check_schema(schema)
+            self.validator(schema)
             
             # Verificar se há referências circulares
             # (Isso é uma verificação simplificada)

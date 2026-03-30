@@ -76,6 +76,7 @@ class ProtocolParser:
     def __init__(self):
         self.frontmatter_pattern = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
         self.slot_pattern = re.compile(r'\{\{(\w+)\}\}')
+        self.last_slot_warnings: List[str] = []
         
     def parse_file(self, filepath: str) -> Dict[str, Any]:
         """
@@ -96,7 +97,8 @@ class ProtocolParser:
             'constraints': [],
             'context': '',
             'raw_content': content,
-            'errors': []
+            'errors': [],
+            'warnings': []
         }
         
         try:
@@ -116,6 +118,17 @@ class ProtocolParser:
             # Extrair seções
             sections = self._parse_sections(main_content)
             result.update(sections)
+            result['warnings'].extend(sections.get('slot_warnings', []))
+
+            if 'schema' not in frontmatter and result.get('schema') is not None:
+                result['frontmatter']['schema'] = result['schema']
+
+            if (
+                'schema' not in result['frontmatter']
+                and '## Schema' in main_content
+                and result.get('schema') is None
+            ):
+                result['errors'].append("Seção ## Schema presente, mas inválida")
             
             # Validar slots
             declared_slots = {slot.name: slot for slot in result['slots']}
@@ -129,18 +142,30 @@ class ProtocolParser:
             # Verificar slots declarados mas não usados
             unused = set(declared_slots.keys()) - used_slots
             if unused:
-                result['warnings'] = [f"Slots declarados mas não usados: {unused}"]
+                result['warnings'].append(f"Slots declarados mas não usados: {unused}")
             
             # Validar campos obrigatórios do frontmatter
             required_fields = ['version', 'model', 'author', 'schema']
             missing_fields = [field for field in required_fields if field not in frontmatter]
             if missing_fields:
                 result['errors'].append(f"Campos obrigatórios faltando: {missing_fields}")
+            else:
+                if not self._is_valid_semver(str(frontmatter.get('version', '')).strip()):
+                    result['errors'].append("Campo 'version' deve seguir formato semver X.Y.Z")
+                if not str(frontmatter.get('model', '')).strip():
+                    result['errors'].append("Campo 'model' não pode estar vazio")
+                if not str(frontmatter.get('author', '')).strip():
+                    result['errors'].append("Campo 'author' não pode estar vazio")
+                if not isinstance(frontmatter.get('schema'), dict):
+                    result['errors'].append("Campo 'schema' deve ser um objeto JSON/YAML válido")
             
         except Exception as e:
             result['errors'].append(f"Erro ao parsear: {str(e)}")
         
         return result
+
+    def _is_valid_semver(self, value: str) -> bool:
+        return bool(re.match(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$', value))
     
     def _parse_frontmatter(self, text: str) -> Dict[str, Any]:
         """
@@ -157,6 +182,9 @@ class ProtocolParser:
                 yaml_content = text
             
             frontmatter = yaml.safe_load(yaml_content) or {}
+            if not isinstance(frontmatter, dict):
+                raise ValueError("Frontmatter YAML deve ser um objeto")
+            frontmatter = {str(key).lower(): value for key, value in frontmatter.items()}
             
             if protocol_name:
                 frontmatter['protocol_name'] = protocol_name
@@ -174,7 +202,8 @@ class ProtocolParser:
             'context': '',
             'slots': [],
             'constraints': [],
-            'schema': None
+            'schema': None,
+            'slot_warnings': []
         }
         
         # Encontrar seções de nível 2 (##)
@@ -188,7 +217,9 @@ class ProtocolParser:
                 sections['context'] = section_content
             
             elif section_title == 'slots':
+                self.last_slot_warnings = []
                 sections['slots'] = self._parse_slots(section_content)
+                sections['slot_warnings'].extend(self.last_slot_warnings)
             
             elif section_title == 'constraints':
                 sections['constraints'] = self._parse_constraints(section_content)
@@ -212,8 +243,7 @@ class ProtocolParser:
                     slot = Slot.from_string(line.strip())
                     slots.append(slot)
                 except ValueError as e:
-                    # Log warning mas não quebra o parser
-                    print(f"Aviso: {e}")
+                    self.last_slot_warnings.append(str(e))
         
         return slots
     
@@ -240,6 +270,11 @@ class ProtocolParser:
         """
         Parse schema JSON/YAML
         """
+        content = content.strip()
+        fence_match = re.match(r'^```(?:json|yaml|yml)?\s*(.*?)\s*```$', content, re.DOTALL)
+        if fence_match:
+            content = fence_match.group(1).strip()
+
         try:
             # Tentar parsear como JSON primeiro
             import json

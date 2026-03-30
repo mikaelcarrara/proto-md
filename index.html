@@ -588,6 +588,15 @@
     color: var(--text-dim);
   }
 
+  footer a {
+    color: var(--gray-light);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    color: var(--text);
+  }
+
   @media (max-width: 768px) {
     .problem-grid, .features-grid { grid-template-columns: 1fr; }
     .concept-layout { grid-template-columns: 1fr; }
@@ -604,9 +613,9 @@
   <ul class="nav-links">
     <li><a href="#concept">concept</a></li>
     <li><a href="#syntax">syntax</a></li>
-    <li><a href="#sdk">sdk</a></li>
+    <li><a href="#sdk">mvp</a></li>
     <li><a href="#start">get started</a></li>
-    <li><a href="https://github.com" class="nav-cta">github</a></li>
+    <li><a href="https://github.com/mikaelcarrara/proto-md" class="nav-cta">github</a></li>
   </ul>
 </nav>
 
@@ -625,7 +634,7 @@
   </div>
   <div class="hero-install">
     <span class="prompt">$</span>
-    <span class="cmd">pip install proto-md</span>
+    <span class="cmd">python cli.py protocols</span>
   </div>
 </div>
 
@@ -772,76 +781,57 @@ semantic inference. You do not guess. You measure.
 
 <!-- SDK -->
 <section id="sdk">
-  <p class="section-label">// the sdk</p>
-  <h2 class="section-title">Use it like a library.<br />Not a string.</h2>
+  <p class="section-label">// mvp status</p>
+  <h2 class="section-title">Lint-first workflow.<br />CI-ready contracts.</h2>
   <p class="section-body">
-    The SDK loads your protocol, validates slot injection, calls the model, 
-    and validates the response — before it ever reaches your application.
+    The current MVP ships parser + validator + CLI + tests + quality workflow.
+    Run protocol checks locally and enforce them on pull requests before deploy.
   </p>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2.5rem;">
     <div class="code-window">
       <div class="code-window-tabs">
-        <span class="tab active">Python</span>
+        <span class="tab active">CLI</span>
       </div>
-      <div class="code-body"><span class="s-kw">from</span> proto_md <span class="s-kw">import</span> Protocol
+      <div class="code-body"><span class="s-cmt">$ python cli.py protocols</span>
 
-<span class="s-cmt"># load like a library</span>
-analyst = <span class="s-fn">Protocol</span>.load(
-  <span class="s-str">"./protocols/performance_analyst.md"</span>
-)
+<span class="s-err">✗</span>  protocols/invalid_protocol.md  <span class="s-err">errors: 2</span>
+  <span class="s-err">Error: Slots usados mas não declarados: {'undeclared'}</span>
+  <span class="s-err">Error: Campos obrigatórios faltando: ['schema']</span>
+<span class="s-ok">✓</span>  protocols/valid_protocol.md    errors: 0
 
-<span class="s-cmt"># inject typed slots</span>
-result = analyst.<span class="s-fn">run</span>(
-  code_snippet=my_code,
-  strictness=<span class="s-num">8</span>,
-  language=<span class="s-str">"python"</span>
-)
-
-<span class="s-cmt"># validated, typed response</span>
-print(result.score)    <span class="s-cmt"># 74</span>
-print(result.issues)   <span class="s-cmt"># Issue[]</span>
-print(result.summary)  <span class="s-cmt"># str</span></div>
+<span class="s-cmt">2 errors · 0 warnings · 1/2 valid</span></div>
     </div>
 
     <div class="code-window">
       <div class="code-window-tabs">
-        <span class="tab active">TypeScript</span>
+        <span class="tab active">Quality CI</span>
       </div>
-      <div class="code-body"><span class="s-kw">import</span> { Protocol } <span class="s-kw">from</span> <span class="s-str">"proto-md"</span>
+      <div class="code-body"><span class="s-cmt"># .github/workflows/quality-check.yml</span>
+name: Quality Check
+on: [push, pull_request]
 
-<span class="s-cmt">// load like a library</span>
-<span class="s-kw">const</span> analyst = <span class="s-kw">await</span> Protocol.<span class="s-fn">load</span>(
-  <span class="s-str">"./protocols/performance_analyst.md"</span>
-)
-
-<span class="s-cmt">// inject typed slots</span>
-<span class="s-kw">const</span> result = <span class="s-kw">await</span> analyst.<span class="s-fn">run</span>({
-  code_snippet: myCode,
-  strictness: <span class="s-num">8</span>,
-  language: <span class="s-str">"typescript"</span>
-})
-
-<span class="s-cmt">// validated, typed response</span>
-result.score    <span class="s-cmt">// number</span>
-result.issues   <span class="s-cmt">// Issue[]</span>
-result.summary  <span class="s-cmt">// string</span></div>
+jobs:
+  quality:
+    steps:
+      - run: python -m py_compile parser.py validator.py cli.py test_mvp.py
+      - run: python -m unittest -v
+      - run: python cli.py protocols/valid_protocol.md --format json
+      - run: python cli.py protocols/valid_protocol.md --strict --format compact</div>
     </div>
   </div>
 
   <!-- LINTER -->
   <div class="code-window" style="margin-top: 1.5rem;">
     <div class="code-window-tabs">
-      <span class="tab active">proto lint — the build check</span>
+      <span class="tab active">proto-lint MVP — the build check</span>
     </div>
-    <div class="code-body"><span class="s-cmt">$ proto lint ./protocols/</span>
+    <div class="code-body"><span class="s-cmt">$ python cli.py protocols --format compact</span>
 
-<span class="s-ok">✓</span>  performance_analyst.md    slots: 3 declared, 3 injected
-<span class="s-ok">✓</span>  auth_guard.md             schema: valid JSON shape
-<span class="s-err">✗</span>  db_optimizer.md           <span class="s-err">slot {{table_name}} declared but never injected</span>
-<span class="s-err">✗</span>  summarizer.md             <span class="s-err">no output schema defined — required in v2+</span>
+<span class="s-ok">✓</span>  protocols/valid_protocol.md: OK
+<span class="s-err">✗</span>  protocols/invalid_protocol.md: <span class="s-err">ERROR - Slots usados mas não declarados: {'undeclared'}</span>
 
-<span class="s-cmt">2 errors · fix before deploy</span></div>
+<span class="s-cmt">exit code 1 on errors · CI blocks merge</span></div>
   </div>
 </section>
 
@@ -899,10 +889,9 @@ result.summary  <span class="s-cmt">// string</span></div>
     <div class="step">
       <span class="step-num">step 01</span>
       <div>
-        <h4>Install the CLI and SDK</h4>
-        <p>Available for Python and Node. The CLI gives you the linter and dev tools. The SDK is what your application imports.</p>
-        <code class="code-inline"><span class="s-cmt">$ </span>pip install proto-md
-<span class="s-cmt">$ </span>npm install proto-md   <span class="s-cmt"># or node</span></code>
+        <h4>Install MVP dependencies</h4>
+        <p>The MVP runs directly from the repository. Install runtime dependencies and use the local CLI.</p>
+        <code class="code-inline"><span class="s-cmt">$ </span>pip install pyyaml jsonschema</code>
       </div>
     </div>
 
@@ -910,9 +899,8 @@ result.summary  <span class="s-cmt">// string</span></div>
       <span class="step-num">step 02</span>
       <div>
         <h4>Write your first protocol</h4>
-        <p>Create a <code style="font-family:var(--mono);font-size:12px;background:var(--bg-2);padding:1px 5px;border-radius:2px;">protocols/</code> directory. Write your prompt as a .md file with the required frontmatter: version, model, slots, constraints, schema. That's it.</p>
-        <code class="code-inline"><span class="s-cmt">$ </span>proto init my_first.md
-<span class="s-ok">✓</span>  protocols/my_first.md created</code>
+        <p>Create a <code style="font-family:var(--mono);font-size:12px;background:var(--bg-2);padding:1px 5px;border-radius:2px;">protocols/</code> directory and add a `.md` protocol with frontmatter, slots, constraints and schema.</p>
+        <code class="code-inline"><span class="s-cmt">$ </span>cp protocols/valid_protocol.md protocols/my_first.md</code>
       </div>
     </div>
 
@@ -920,20 +908,19 @@ result.summary  <span class="s-cmt">// string</span></div>
       <span class="step-num">step 03</span>
       <div>
         <h4>Lint before you commit</h4>
-        <p>Add <code style="font-family:var(--mono);font-size:12px;background:var(--bg-2);padding:1px 5px;border-radius:2px;">proto lint</code> to your CI pipeline. If slots are mismatched or schemas are missing, the build fails. Cognitive contracts are first-class citizens.</p>
-        <code class="code-inline"><span class="s-cmt">$ </span>proto lint ./protocols/
-<span class="s-ok">✓</span>  All protocols valid</code>
+        <p>Run `proto-lint` locally and in CI. If slots are mismatched or schema is missing, the pipeline fails with exit code 1.</p>
+        <code class="code-inline"><span class="s-cmt">$ </span>python cli.py protocols
+<span class="s-cmt">$ </span>python -m unittest -v</code>
       </div>
     </div>
 
     <div class="step">
       <span class="step-num">step 04</span>
       <div>
-        <h4>Load in your application</h4>
-        <p>Replace your hardcoded f-strings with <code style="font-family:var(--mono);font-size:12px;background:var(--bg-2);padding:1px 5px;border-radius:2px;">Protocol.load()</code>. Inject slots. Get validated, typed results. Your application logic stays clean. Your cognition layer has governance.</p>
-        <code class="code-inline"><span class="s-kw">from</span> proto_md <span class="s-kw">import</span> Protocol
-p = Protocol.load(<span class="s-str">"./protocols/my_first.md"</span>)
-result = p.run(slot_a=..., slot_b=...)</code>
+        <h4>Gate merges with quality workflow</h4>
+        <p>Use GitHub Actions to run syntax checks, tests and CLI smoke checks on every push/PR to `main`.</p>
+        <code class="code-inline"><span class="s-cmt">$ </span>git add .
+<span class="s-cmt">$ </span>git push origin main   <span class="s-cmt"># quality-check.yml runs automatically</span></code>
       </div>
     </div>
   </div>
@@ -947,7 +934,7 @@ result = p.run(slot_a=..., slot_b=...)</code>
     Version it. Lint it. Own it.
   </p>
   <div class="hero-actions" style="justify-content:center;">
-    <a href="https://github.com" class="btn-primary">View on GitHub →</a>
+    <a href="https://github.com/mikaelcarrara/proto-md" class="btn-primary">View on GitHub →</a>
     <a href="#concept" class="btn-secondary">Read the docs</a>
   </div>
 </div>
@@ -956,7 +943,7 @@ result = p.run(slot_a=..., slot_b=...)</code>
 <hr class="divider" />
 <footer>
   <div class="logo"><span>~/</span>proto.md</div>
-  <p>open source · MIT license · built for the cognitive layer</p>
+  <p>2026 <a href="https://www.behance.net/mikaelmcarrara" target="_blank" rel="noopener noreferrer">Mikael Carrara</a>. Released under the <a href="https://github.com/mikaelcarrara/proto-md/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a> · built for the cognitive layer</p>
 </footer>
 
 </body>

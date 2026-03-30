@@ -29,6 +29,7 @@ This repository currently includes:
 - `PLANO_EXECUCAO.md`: execution roadmap
 - `index.html`: project landing page
 - `.github/workflows/deploy-pages.yml`: GitHub Pages deployment workflow
+- `.github/workflows/quality-check.yml`: quality baseline workflow (syntax, tests, CLI checks)
 
 ## Repository Layout
 
@@ -44,8 +45,11 @@ proto-md/
 ├── SPEC_FRONTMATTER.md
 ├── SPEC_PROTO_LINT.md
 ├── PLANO_EXECUCAO.md
+├── LICENSE
 ├── index.html
-└── .github/workflows/deploy-pages.yml
+└── .github/workflows/
+    ├── deploy-pages.yml
+    └── quality-check.yml
 ```
 
 ## Quick Start
@@ -114,7 +118,7 @@ print(validation.is_valid, validation.errors)
 ### Lint protocols from CLI
 
 ```bash
-python cli.py protocols --format table
+python cli.py protocols
 python cli.py protocols --format compact
 python cli.py protocols --format json
 python cli.py protocols --strict
@@ -150,6 +154,7 @@ Reference documents:
 ## CI and Deployment
 
 - GitHub Pages deploy is configured in `.github/workflows/deploy-pages.yml`
+- Quality checks run in `.github/workflows/quality-check.yml` for push/PR on `main`
 - Pushes to `main` trigger site publication
 
 ## Roadmap
@@ -164,4 +169,5 @@ Planned milestones include:
 
 ## License
 
-License not yet defined.
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.

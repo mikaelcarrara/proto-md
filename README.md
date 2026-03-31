@@ -1,203 +1,167 @@
 # intent-compiler
 
-Protocol-Driven Development toolkit for Markdown-based AI protocols.
+**Deterministic Markdown → structured artifacts.**
 
-`intent-compiler` defines a structured way to write, parse, and validate protocol files (`.md`) so teams can ship LLM workflows with stronger correctness guarantees.
+`intent-compiler` transforms Markdown protocols into typed, validated artifacts — mocks for tests, forms for users, and CI-enforced contracts. One source of truth.
 
 ## Why intent-compiler
 
-Prompt workflows often drift over time and break silently. This project introduces protocol contracts in Markdown:
+Prompt workflows drift silently. Your AI breaks without warning. This toolkit solves that:
 
-- Explicit metadata (`version`, `model`, `author`, `schema`)
-- Declared slots with types and constraints
-- Validation gates for protocol integrity
-- JSON Schema checks for model output
+- **Schema as source of truth** — Define once, generate everything
+- **Type-safe slots** — Wrong type injection fails at parse time
+- **Schema validation** — LLM output validated against JSON Schema Draft 7
+- **Semantic versioning** — Breaking changes are explicit
+- **CI-friendly** — Gate every PR, know exactly what your model will do
 
-The goal is to make prompt workflows testable, reviewable, and CI-friendly.
+## Protocol Format
 
-## Current Status
+A protocol file (`.md`) contains:
 
-This repository currently includes:
+```markdown
+---
+Version: 1.0.0
+Model: anthropic/claude-sonnet-4
+Author: platform-team
+Schema:
+  type: object
+  properties:
+    username: { type: string, minLength: 3 }
+    email: { type: string, format: email }
+  required: [username, email]
+---
 
-- `parser.py`: Markdown protocol parser with frontmatter and section extraction
-- `validator.py`: JSON Schema and protocol-level validation primitives
-- `cli.py`: `proto` command line interface (`proto lint` and `proto resolve`)
-- `protocols/`: sample valid and invalid protocol files
-- `test_mvp.py`: automated MVP test suite
-- `SPEC_FRONTMATTER.md`: frontmatter specification
-- `SPEC_PROTO_LINT.md`: linting and CI behavior specification
-- `PLANO_EXECUCAO.md`: execution roadmap
-- `index.html`: project landing page
-- `.github/workflows/deploy-pages.yml`: GitHub Pages deployment workflow
-- `.github/workflows/quality-check.yml`: quality baseline workflow (syntax, tests, CLI checks)
+## Context
+You are a user registration handler.
 
-## Repository Layout
+## Slots
+{{username}} string — unique username
+{{email}} string — valid email address
 
-```text
-intent-compiler/
-├── cli.py
-├── parser.py
-├── protocols/
-│   ├── valid_protocol.md
-│   └── invalid_protocol.md
-├── test_mvp.py
-├── validator.py
-├── SPEC_FRONTMATTER.md
-├── SPEC_PROTO_LINT.md
-├── PLANO_EXECUCAO.md
-├── LICENSE
-├── index.html
-└── .github/workflows/
-    ├── deploy-pages.yml
-    └── quality-check.yml
+## Constraints
+1. Username must be alphanumeric.
+2. Email must be valid format.
 ```
 
 ## Quick Start
-
-### Requirements
-
-- Python 3.10+
-- pip
-
-### Install dependencies
 
 ```bash
 pip install pyyaml jsonschema
 ```
 
-### Parse a protocol
+### CLI Commands
+
+```bash
+# Lint protocols
+python cli.py lint protocols/
+
+# Resolve to artifact
+python cli.py resolve protocol.md --output json
+
+# Generate mocks from schema
+python cli.py generate protocol.md --mock --count 3
+
+# Generate UI form from schema
+python cli.py generate protocol.md --ui --out form.html
+```
+
+### Programmatic Usage
 
 ```python
 from parser import ProtocolParser
-
-content = """
----
-version: 1.0.0
-model: anthropic/claude-sonnet-4
-author: platform-team
-schema:
-  type: object
-  properties:
-    score: { type: number, minimum: 0, maximum: 100 }
-  required: [score]
----
-
-## Context
-You are a strict reviewer.
-
-## Slots
-{{code_snippet}} string — source code
-
-## Constraints
-1. Output must match schema
-"""
-
-result = ProtocolParser().parse_content(content)
-print(result["errors"])
-print([slot.name for slot in result["slots"]])
-```
-
-### Validate output against schema
-
-```python
 from validator import SchemaValidator
+from mock_generator import generate_mock
+from ui_generator import generate_ui
 
-schema = {
-  "type": "object",
-  "properties": {
-    "score": {"type": "number", "minimum": 0, "maximum": 100}
-  },
-  "required": ["score"]
-}
+# Parse protocol
+protocol = ProtocolParser().parse_file("protocol.md")
+schema = protocol["frontmatter"]["schema"]
 
-output = {"score": 92}
-validation = SchemaValidator().validate_output(output, schema)
-print(validation.is_valid, validation.errors)
+# Validate LLM output
+validator = SchemaValidator()
+result = validator.validate_output(llm_output, schema)
+
+# Generate mock data
+mock = generate_mock(schema)
+
+# Generate UI form
+html = generate_ui(schema, title="User Form")
 ```
 
-### Lint and resolve from CLI
+## Features
 
+### Type-Safe Slots
+```python
+# Wrong type? Fails at parse time, not runtime.
+{{user_count}} int  # must be integer
+{{name}} string     # must be string
+```
+
+### Schema Validation
 ```bash
-python cli.py lint protocols
-python cli.py lint protocols --format compact
-python cli.py lint protocols --format json
-python cli.py lint protocols --strict
-python cli.py lint --init-config
-python cli.py lint --config custom-rules.yaml
+$ python cli.py lint output.json
+✓ valid — schema matches, types correct
 ```
 
-### Configuration
-
-Create a `.intent.yaml` in your project root to customize rules:
-
+### Semantic Versioning
 ```bash
-python cli.py lint --init-config
-python cli.py lint --config custom-rules.yaml
+# Breaking change? Bump major version.
+# protocol.md@1.0.0 → protocol.md@2.0.0
 ```
 
-This generates a config with all available rules (PM001–PM007). You can edit the file to disable or change severity of any rule.
-
-Exit codes:
-
-- `0`: no errors
-- `1`: validation errors found
-- `2`: execution/configuration problem (for example, no `.md` file found)
-
-### Resolve a protocol to a structured artifact
-
+### CI Integration
 ```bash
-python cli.py resolve protocols/valid_protocol.md
-python cli.py resolve protocols/valid_protocol.md --output yaml
-python cli.py resolve protocols/valid_protocol.md --output typescript
-python cli.py resolve protocols/valid_protocol.md --prompt
-python cli.py resolve protocols/valid_protocol.md --out artifact.json
+# .github/workflows/quality.yml
+- name: Lint Protocols
+  run: python cli.py lint protocols/ --strict
+# Exit 0 = merge allowed, Exit 1 = PR blocked
 ```
 
-### Run the MVP test suite
+## Repository Layout
 
-```bash
-python -m unittest -v
 ```
-
-## Protocol Format
-
-A protocol file is expected to include:
-
-1. Frontmatter metadata
-2. `## Context` section
-3. `## Slots` section with typed placeholders
-4. `## Constraints` section
-5. Optional `## Schema` section
-
-Reference documents:
-
-- `SPEC_FRONTMATTER.md`
-- `SPEC_PROTO_LINT.md`
-
-## CI and Deployment
-
-- GitHub Pages deploy is configured in `.github/workflows/deploy-pages.yml`
-- Quality checks run in `.github/workflows/quality-check.yml` for push/PR on `main`
-- Pushes to `main` trigger site publication
+intent-compiler/
+├── cli.py              # CLI: lint, resolve, generate
+├── parser.py           # Protocol Markdown parser
+├── validator.py        # JSON Schema validation
+├── mock_generator.py    # Generate mock data from schema
+├── ui_generator.py     # Generate HTML forms from schema
+├── lint_config.py      # Configurable lint rules
+├── protocols/           # Sample protocols
+│   ├── valid_protocol.md
+│   ├── invalid_protocol.md
+│   └── user_profile.md
+├── test_mvp.py         # Test suite
+├── index.html          # Landing page
+└── .github/workflows/  # CI/CD pipelines
+```
 
 ## Roadmap
 
-Completed in MVP:
+Completed:
+- [x] `proto lint` — validate protocols (table/compact/json)
+- [x] `proto resolve` — emit structured artifact
+- [x] `proto generate --mock` — generate API mocks from schema
+- [x] `proto generate --ui` — generate HTML forms from schema
+- [x] Type-safe slot parsing
+- [x] JSON Schema Draft 7 validation
+- [x] CI exit codes
+- [x] `.intent.yaml` configuration
+- [x] Semantic versioning support
 
-- `proto lint` — validate protocols with table/compact/json output (colorized)
-- `.intent.yaml` configuration with customizable rules
-- `proto resolve` — emit structured artifact (JSON/YAML) from a protocol file
-- Exit codes for CI integration
-- Quality CI pipeline
+Planned:
+- [ ] `proto init` — scaffold new protocol
+- [ ] TypeScript SDK
+- [ ] Python SDK (PyPI)
+- [ ] VS Code Extension
+- [ ] Protocol import/extension
 
-Planned milestones:
+## Documentation
 
-- `proto init` — scaffold a new protocol
-- `proto generate` — emit code/mocks/prompts from a protocol
-- TypeScript SDK
-- VS Code Extension with inline lint and hover
+- `SPEC_FRONTMATTER.md` — Frontmatter specification
+- `SPEC_PROTO_LINT.md` — Linting behavior
+- `PLANO_EXECUCAO.md` — Full roadmap (Portuguese)
 
 ## License
 
-This project is licensed under the MIT License.
-See the [LICENSE](LICENSE) file for details.
+MIT

@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>intent-compiler — Protocol contracts for AI workflows</title>
+<title>intent-compiler — Deterministic Markdown → structured artifacts</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --bg: #0a0906;
-    --bg-2: #111009;
-    --bg-3: #17150f;
-    --bg-card: #1a1810;
+    --bg-2: rgba(255, 255, 255, 0.03);
+    --bg-3: rgba(255, 255, 255, 0.03);
+    --bg-card: rgba(255, 255, 255, 0.03);
     --border: rgba(128,128,128,0.1);
     --border-strong: rgba(128,128,128,0.2);
     --amber: #e8a020;
@@ -30,7 +30,7 @@
     --green: #4a8c5c;
     --green-bright: #6ab87a;
     --red: #8c4a4a;
-    --mono: 'IBM Plex Mono', monospace;
+    --mono: 'JetBrains Mono', monospace;
     --sans: 'Satoshi', sans-serif;
   }
 
@@ -212,6 +212,29 @@
   .hero-install .prompt { color: var(--amber-dim); }
   .hero-install .cmd { color: var(--text); }
 
+  .install-cmd {
+    margin-top: 2rem;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .install-cmd .prompt { color: var(--amber-dim); }
+  .install-cmd .cmd { color: var(--text); }
+
+  .code-window .code-body .cmd-highlight {
+    color: var(--amber);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
   /* ── SECTION ── */
   section {
     max-width: 1100px;
@@ -258,7 +281,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
-    background: rgba(128,128,128,0.1);
     border: 0.5px solid rgba(128,128,128,0.2);
     border-radius: 6px;
     overflow: hidden;
@@ -304,17 +326,17 @@
     border-radius: 4px;
     padding: 1rem;
     font-family: var(--mono);
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
     overflow-x: auto;
     max-width: 100%;
     word-wrap: break-word;
   }
 
-  .problem-code .bad { color: #7a4a4a; }
-  .problem-code .comment { color: var(--text-dim); }
-  .problem-code .str { color: #6a5a3a; }
+  .problem-code .bad { color: #c07070; }
+  .problem-code .comment { color: var(--text-dim); font-style: italic; }
+  .problem-code .str { color: #8ab4a0; }
 
   /* ── CONCEPT ── */
   .concept-layout {
@@ -362,7 +384,6 @@
 
   /* ── CODE BLOCKS ── */
   .code-window {
-    background: var(--bg-card);
     border: 0.5px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
@@ -395,7 +416,7 @@
   .code-body {
     padding: 1.5rem;
     font-family: var(--mono);
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.65;
     overflow-x: auto;
     white-space: pre;
@@ -403,6 +424,170 @@
     max-width: 100%;
     word-wrap: break-word;
     letter-spacing: 0.01em;
+  }
+
+  /* ── WORKFLOW ── */
+  .workflow-diagram {
+    display: flex;
+    align-items: stretch;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .workflow-step {
+    flex: 1;
+    min-width: 280px;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .workflow-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .workflow-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    margin-bottom: 1rem;
+  }
+
+  .workflow-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre;
+    color: var(--text-muted);
+  }
+
+  .workflow-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .workflow-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    justify-content: space-between;
+  }
+
+  .wtab {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .wtab:hover {
+    color: var(--text);
+  }
+
+  .wtab.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+
+  .workflow-panels {
+    min-height: 180px;
+  }
+
+  .wpanel {
+    display: none;
+  }
+
+  .wpanel.active {
+    display: block;
+  }
+
+  .wpanel-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .wpanel-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre;
+    color: var(--text-muted);
+  }
+
+  .workflow-cta {
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  /* workflow syntax colors */
+  .wl-comment { color: var(--text-dim); }
+  .wl-key { color: var(--amber); }
+  .wl-tab { color: var(--text-dim); }
+  .wl-str { color: #8ab4a0; }
+  .wl-num { color: #c0a070; }
+  .wl-cmd { color: var(--text); display: block; margin-bottom: 0.5rem; }
+  .wl-output { color: var(--text-muted); }
+  .wl-ok { color: var(--green-bright); font-weight: 600; }
+  .wl-tag { color: #a0a0c0; }
+  .wl-attr { color: #e8c46a; }
+
+  /* workflow features */
+  .workflow-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    border: 0.5px solid rgba(128,128,128,0.2);
+    margin-top: 2rem;
+    overflow: hidden;
+  }
+
+  .wf-card {
+    background: var(--bg-card);
+    padding: 2.5rem;
+  }
+
+  .wf-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .wf-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--amber);
+    margin-bottom: 0.5rem;
+  }
+
+  .wf-desc {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
   }
 
   /* syntax colors */
@@ -425,7 +610,6 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    background: rgba(128,128,128,0.1);
     border: 0.5px solid rgba(128,128,128,0.2);
     border-radius: 6px;
     overflow: hidden;
@@ -462,10 +646,10 @@
 
   /* ── PHILOSOPHY ── */
   .philosophy-block {
+    background: var(--bg-card);
     border-left: 1.5px solid var(--gray-medium);
     padding: 2rem 2.5rem;
     margin: 3rem 0;
-    background: rgba(128,128,128,0.06);
     border-radius: 0 4px 4px 0;
   }
 
@@ -601,123 +785,112 @@
   }
 
   /* ── DEMO ── */
-.demo-wrap {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-top: 3rem;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-.demo-editor, .demo-output {
-  background: var(--bg-card);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.demo-editor-header, .demo-output-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 0.5px solid var(--border);
-  background: var(--bg-2);
-  flex-shrink: 0;
-}
-.demo-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.demo-dot-r { background: #c04040; }
-.demo-dot-y { background: #c0a040; }
-.demo-dot-g { background: #40a060; }
-.demo-label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-left: 0.5rem; }
-.demo-badge {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 2px;
-  margin-left: auto;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-.demo-badge-md { background: rgba(232,160,32,0.15); color: var(--amber); border: 0.5px solid rgba(232,160,32,0.3); }
-.demo-badge-json { background: rgba(106,184,122,0.15); color: var(--green-bright); border: 0.5px solid rgba(106,184,122,0.3); }
-textarea.demo-input {
-  flex: 1;
-  min-height: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
-  padding: 1.25rem;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  line-height: 1.8;
-  color: var(--text-muted);
-  caret-color: var(--amber);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  overflow-x: hidden;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-}
-textarea.demo-input::-webkit-scrollbar { width: 4px; }
-textarea.demo-input::-webkit-scrollbar-track { background: transparent; }
-textarea.demo-input::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-textarea.demo-input::-webkit-scrollbar-thumb:hover { background: var(--gray-dark); }
-textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
-.json-body {
-  flex: 1;
-  min-height: 0;
-  padding: 1.25rem;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  line-height: 1.8;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  overflow-x: hidden;
-  word-wrap: break-word;
-}
-.json-body::-webkit-scrollbar { width: 4px; }
-.json-body::-webkit-scrollbar-track { background: transparent; }
-.json-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-.json-body::-webkit-scrollbar-thumb:hover { background: var(--gray-dark); }
+  .demo-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    border-radius: var(--radius-xl);
+  }
 
-.json-artifact { border-left: 2px solid var(--amber); padding-left: 1rem; }
-.json-section { margin-bottom: 1.25rem; }
-.json-section:last-child { margin-bottom: 0; }
-.json-section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber-dim); margin-bottom: 0.4rem; display: block; }
-.json-inner { padding-left: 0.75rem; }
-.json-kv { display: flex; gap: 0.35rem; margin-bottom: 0.2rem; align-items: baseline; }
-.json-indent { color: var(--text-dim); user-select: none; width: 1rem; flex-shrink: 0; }
-.json-key { color: var(--gray-light); }
-.json-str { color: #8ab4a0; }
-.json-num { color: #c0a070; }
-.json-cmt { color: var(--text-dim); font-style: italic; display: block; margin-bottom: 0.5rem; }
-.json-ok { color: var(--green-bright); }
-.json-err { color: #c07070; }
-.json-badge { display: inline-block; padding: 1px 6px; border-radius: 2px; font-size: 10px; margin-left: 0.5rem; vertical-align: middle; }
-.json-badge-ok { background: rgba(106,184,122,0.15); color: var(--green-bright); border: 0.5px solid rgba(106,184,122,0.3); }
-.json-badge-err { background: rgba(192,112,112,0.15); color: #c07070; border: 0.5px solid rgba(192,112,112,0.3); }
-.json-valid-bar { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
-.json-valid-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.json-valid-dot-ok { background: var(--green-bright); }
-.json-valid-dot-err { background: #c07070; }
-.json-valid-text { font-family: var(--mono); font-size: 11px; }
-.demo-resolve-btn { display: block; width: 100%; margin-top: 1.5rem; padding: 12px; background: var(--amber); color: #0a0906; font-family: var(--mono); font-size: 13px; font-weight: 600; border: none; border-radius: var(--radius-md); cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.2s; }
-.demo-resolve-btn:hover { opacity: 0.85; }
-.anim-glow { animation: glow 1.5s ease-in-out infinite alternate; }
-@keyframes glow { from { box-shadow: 0 0 0 rgba(232,160,32,0); } to { box-shadow: 0 0 20px rgba(232,160,32,0.15); } }
-.anim-fadein { animation: fadein 0.3s ease-out; }
-@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .demo-editor, .demo-output {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-@media (max-width: 768px) {
-  .demo-wrap { grid-template-columns: 1fr; }
-  .demo-editor, .demo-output { max-height: 400px; }
-}
+  .demo-editor-header, .demo-output-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-2);
+    flex-shrink: 0;
+  }
+
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .demo-dot-r { background: #c04040; }
+  .demo-dot-y { background: #c0a040; }
+  .demo-dot-g { background: #40a060; }
+  .demo-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-left: 0.5rem; }
+  .demo-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .demo-badge-md { background: rgba(232,160,32,0.15); color: var(--amber); border: 0.5px solid rgba(232,160,32,0.3); }
+  .demo-badge-json { background: rgba(106,184,122,0.15); color: var(--green-bright); border: 0.5px solid rgba(106,184,122,0.3); }
+
+  textarea.demo-input {
+    flex: 1;
+    min-height: 0;
+    background: transparent;
+    border: none;
+    padding: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    resize: none;
+    outline: none;
+  }
+
+  textarea.demo-input::placeholder { color: var(--text-dim); }
+  textarea.demo-input::-webkit-scrollbar { width: 4px; }
+  textarea.demo-input::-webkit-scrollbar-track { background: transparent; }
+  textarea.demo-input::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .json-body {
+    flex: 1;
+    min-height: 0;
+    padding: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-y: auto;
+    color: var(--text);
+  }
+
+  .json-body::-webkit-scrollbar { width: 4px; }
+  .json-body::-webkit-scrollbar-track { background: transparent; }
+  .json-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .json-artifact { margin-top: 0.5rem; }
+  .json-section { margin-bottom: 1rem; }
+  .json-section:last-child { margin-bottom: 0; }
+  .json-section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber-dim); margin-bottom: 0.4rem; display: block; }
+  .json-inner { padding-left: 0.75rem; border-left: 2px solid var(--border); }
+  .json-kv { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; }
+  .json-key { color: var(--amber); }
+  .json-str { color: var(--green-bright); }
+  .json-num { color: var(--blue-bright); }
+  .json-cmt { color: var(--text-dim); font-style: italic; }
+  .json-ok { color: var(--green-bright); }
+  .json-err { color: #c07070; }
+  .json-badge { display: inline-block; padding: 1px 6px; border-radius: 2px; font-size: 10px; margin-left: 0.5rem; vertical-align: middle; }
+  .json-badge-ok { background: rgba(106,184,122,0.15); color: var(--green-bright); border: 0.5px solid rgba(106,184,122,0.3); }
+  .json-badge-err { background: rgba(192,112,112,0.15); color: #c07070; border: 0.5px solid rgba(192,112,112,0.3); }
+  .json-valid { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+  .json-valid-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .json-valid-dot-ok { background: var(--green-bright); }
+  .json-valid-dot-err { background: #c07070; }
+  .json-valid-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .demo-resolve-btn { display: block; width: 100%; margin-top: 1.5rem; padding: 14px; background: var(--amber); color: #0a0906; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; border: none; border-radius: var(--radius-md); cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.2s; }
+  .demo-resolve-btn:hover { opacity: 0.85; }
+  .anim-glow { animation: glow 1.5s ease-in-out infinite alternate; }
+  @keyframes glow { from { box-shadow: 0 0 0 rgba(232,160,32,0); } to { box-shadow: 0 0 20px rgba(232,160,32,0.15); } }
+  .anim-fadein { animation: fadein 0.3s ease-out; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 768px) {
+    .demo-wrap { grid-template-columns: 1fr; }
+    .demo-editor, .demo-output { max-height: 400px; }
+  }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
@@ -725,6 +898,8 @@ textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
   .concept-layout { grid-template-columns: 1fr; }
   .step { grid-template-columns: 48px 1fr; }
   nav .nav-links { display: none; }
+  .workflow-features { grid-template-columns: 1fr 1fr; }
+  .workflow-arrow { display: none; }
 }
 </style>
 </head>
@@ -745,7 +920,7 @@ textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
 
 <!-- HERO -->
 <div class="hero">
-  <span class="hero-tag">Protocol-Driven Development</span>
+  <span class="hero-tag">Deterministic · Structured artifacts</span>
   <h1 class="hero-title">Your prompt<br />has a schema.</h1>
   <p class="hero-subtitle">
     intent-compiler turns Markdown protocols into deterministic artifacts —
@@ -769,7 +944,7 @@ textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
   <p class="section-label">// the problem</p>
   <h2 class="section-title">Two kinds of wrong.</h2>
   <p class="section-body">
-    There are two broken approaches to prompts in production today. 
+    There are two broken approaches to prompts in production today.
     Neither scales. Neither is maintainable. Both make debugging a nightmare.
   </p>
 
@@ -777,35 +952,34 @@ textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
     <div class="problem-card" data-role="// the dinosaur">
       <h3>Hardcoded<br/>in the logic</h3>
       <p>
-        The prompt is buried inside Python functions, concatenated with f-strings, 
-        mixed with business logic. Change the behavior? Edit the code. 
-        Refactor the code? Break the behavior. Invisible coupling everywhere.
+        The prompt is buried inside Python functions, concatenated with f-strings,
+        mixed with business logic.
       </p>
-      <div class="problem-code"><span class="bad">def</span> analyze(code):
-  <span class="comment"># 400-char string buried here</span>
+      <div class="problem-code">
+<span class="bad">def</span> analyze(code):
   prompt = <span class="str">f"You are an expert..."</span>
-           <span class="str">f"Analyze: {code}"</span>
-           <span class="str">f"Return JSON with..."</span>
-  <span class="comment"># pray it works</span>
-  return llm.call(prompt)</div>
+  prompt += <span class="str">f"Analyze: {code}"</span>
+  <span class="comment"># 400 lines later...</span>
+  return llm.call(prompt)
+      </div>
     </div>
 
     <div class="problem-card" data-role="// the generator">
       <h3>Generated<br/>without structure</h3>
       <p>
-        The prompt is thrown at the AI ad-hoc, with no validation, no output schema, 
-        no versioning. It works once and breaks randomly. 
-        Nobody knows why it changed. Nobody owns it. 
+        The prompt is thrown at the AI ad-hoc, with no validation,
+        no output schema, no versioning.
       </p>
-      <div class="problem-code"><span class="comment"># slack message to the team</span>
-<span class="str">"hey the AI is acting weird today"</span>
+      <div class="problem-code">
+<span class="comment"># slack message to the team</span>
+<span class="str">"hey the AI is acting weird"</span>
 
 <span class="comment"># the 'protocol'</span>
-<span class="str">"gpt make me an analysis 
-  of this code and return
-  something useful thx"</span>
+<span class="str">"gpt make me an analysis"</span>
+<span class="str">"return something useful"</span>
 
-<span class="comment"># production. real. 2024.</span></div>
+<span class="comment"># production. real.</span>
+      </div>
     </div>
   </div>
 </section>
@@ -847,6 +1021,130 @@ textarea.demo-input::selection { background: rgba(232,160,32,0.2); }
   </div>
 
   <button class="demo-resolve-btn" id="demo-resolve-btn">Resolve →</button>
+</section>
+
+<hr class="divider" />
+
+<!-- WORKFLOW -->
+<section id="workflow">
+  <p class="section-label">// the full picture</p>
+  <h2 class="section-title">From schema to<br />everything else.</h2>
+  <p class="section-body">
+    Define once. Generate everything. Deterministic prompts mean
+    predictable AI behavior — no more "it worked yesterday" excuses.
+  </p>
+
+  <div class="workflow-diagram">
+    <div class="workflow-step" id="ws-step1">
+      <div class="workflow-icon">📋</div>
+      <div class="workflow-label">1. Protocol</div>
+      <div class="workflow-code">
+<span class="wl-comment"># protocol.md</span>
+<span class="wl-key">version:</span> <span class="wl-str">1.0.0</span>
+<span class="wl-key">model:</span> <span class="wl-str">claude-3</span>
+<span class="wl-key">schema:</span>
+<span class="wl-tab">username: string</span>
+<span class="wl-tab">email: email</span>
+<span class="wl-tab">age: int 18-120</span>
+      </div>
+    </div>
+
+    <div class="workflow-arrow">→</div>
+
+    <div class="workflow-step" id="ws-step2">
+      <div class="workflow-tabs">
+        <button class="wtab active" data-panel="mock-panel">Mock</button>
+        <button class="wtab" data-panel="ui-panel">UI Form</button>
+        <button class="wtab" data-panel="validate-panel">Validate</button>
+        <button class="wtab" data-panel="version-panel">Version</button>
+        <button class="wtab" data-panel="ci-panel">CI/CD</button>
+      </div>
+
+      <div class="workflow-panels">
+        <div class="wpanel active" id="mock-panel">
+          <div class="wpanel-label">// generate test data</div>
+          <div class="wpanel-code">
+<span class="wl-cmd">$ proto generate p.md --mock</span>
+<span class="wl-output">{</span>
+<span class="wl-tab"><span class="wl-key">"username"</span>: <span class="wl-str">"john_42"</span>,</span>
+<span class="wl-tab"><span class="wl-key">"email"</span>: <span class="wl-str">"john@test.io"</span>,</span>
+<span class="wl-tab"><span class="wl-key">"age"</span>: <span class="wl-num">28</span></span>
+<span class="wl-output">}</span>
+          </div>
+        </div>
+
+        <div class="wpanel" id="ui-panel">
+          <div class="wpanel-label">// generate html form</div>
+          <div class="wpanel-code">
+<span class="wl-cmd">$ proto generate p.md --ui</span>
+<span class="wl-output"><span class="wl-tag">&lt;form&gt;</span>
+  <span class="wl-tag">&lt;input</span> <span class="wl-attr">name="username"</span><span class="wl-tag">/&gt;</span>
+  <span class="wl-tag">&lt;input</span> <span class="wl-attr">name="email"</span> <span class="wl-attr">type="email"</span><span class="wl-tag">/&gt;</span>
+  <span class="wl-tag">&lt;input</span> <span class="wl-attr">name="age"</span> <span class="wl-attr">type="number"</span><span class="wl-tag">/&gt;</span>
+<span class="wl-tag">&lt;/form&gt;</span>
+          </div>
+        </div>
+
+        <div class="wpanel" id="validate-panel">
+          <div class="wpanel-label">// validate llm output</div>
+          <div class="wpanel-code">
+<span class="wl-cmd">$ proto lint output.json</span>
+<span class="wl-ok">✓ valid</span>
+<span class="wl-tab">schema: matches</span>
+<span class="wl-tab">types: correct</span>
+<span class="wl-tab">constraints: ok</span>
+          </div>
+        </div>
+
+        <div class="wpanel" id="version-panel">
+          <div class="wpanel-label">// semantic versioning</div>
+          <div class="wpanel-code">
+<span class="wl-cmt"># breaking change? bump major</span>
+<span class="wl-key">version:</span> <span class="wl-num">2.0.0</span>
+<span class="wl-comment"># old: username string</span>
+<span class="wl-comment"># new: user_id string + username</span>
+
+<span class="wl-cmt"># protocol.md --1.0.0</span>
+<span class="wl-cmt"># protocol.md --2.0.0</span>
+          </div>
+        </div>
+
+        <div class="wpanel" id="ci-panel">
+          <div class="wpanel-label">// gate every pr</div>
+          <div class="wpanel-code">
+<span class="wl-cmd">$ proto lint protocols/</span>
+<span class="wl-ok">✓ 12/12 valid</span>
+<span class="wl-tab">exit 0 → merge allowed</span>
+<span class="wl-output">exit 1 → pr blocked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="workflow-features">
+    <div class="wf-card">
+      <div class="wf-title">Type-safe slots</div>
+      <div class="wf-desc">Wrong type injection fails at parse time, not at runtime</div>
+    </div>
+    <div class="wf-card">
+      <div class="wf-title">Schema validation</div>
+      <div class="wf-desc">LLM output validated against JSON Schema Draft 7</div>
+    </div>
+    <div class="wf-card">
+      <div class="wf-title">Semver contracts</div>
+      <div class="wf-desc">Breaking changes are explicit. No silent breakage.</div>
+    </div>
+    <div class="wf-card">
+      <div class="wf-title">Reproducible mocks</div>
+      <div class="wf-desc">Same seed = same data. Deterministic tests every time.</div>
+    </div>
+  </div>
+
+  <div class="install-cmd">
+    <span class="prompt">$</span>
+    <span class="cmd">pip install intent-compiler</span>
+  </div>
 </section>
 
 <hr class="divider" />
@@ -946,7 +1244,7 @@ You are a sentiment analyst.
       <div class="code-window-tabs">
         <span class="tab active">CLI</span>
       </div>
-      <div class="code-body"><span class="s-cmt">$ python cli.py lint protocols --format compact</span>
+      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py lint protocols --format compact</span>
 
 <span class="s-err">x</span>  invalid_protocol.md <span class="s-err">2e</span> <span class="s-warn">0w</span>
 <span class="s-ok">v</span>  valid_protocol.md  <span class="s-ok">0e</span> <span class="s-warn">0w</span>
@@ -957,7 +1255,7 @@ You are a sentiment analyst.
       <div class="code-window-tabs">
         <span class="tab active">intent resolve</span>
       </div>
-      <div class="code-body"><span class="s-cmt">$ python cli.py resolve protocol.md</span>
+      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py resolve protocol.md</span>
 <span class="s-str">{</span>
   <span class="s-key">"sentiment"</span>:   <span class="s-val">"positive"</span><span class="s-str">,</span>
   <span class="s-key">"confidence"</span>:  <span class="s-val">0.92</span><span class="s-str">,</span>
@@ -966,20 +1264,38 @@ You are a sentiment analyst.
     </div>
   </div>
 
+  <!-- MOCK GENERATOR -->
+  <div class="code-window" style="margin-top: 1.5rem;">
+    <div class="code-window-tabs">
+      <span class="tab active">intent generate --mock</span>
+    </div>
+    <div class="code-body"><span class="s-cmt"># Generate mock API data from JSON Schema</span>
+<span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py generate protocol.md --mock --count 3</span>
+<span class="s-str">{</span>
+  <span class="s-key">"mocks"</span>: <span class="s-str">[</span>
+    <span class="s-str">{</span> <span class="s-key">"summary"</span>: <span class="s-val">"sample"</span> <span class="s-str">}</span><span class="s-str">,</span>
+    <span class="s-str">{</span> <span class="s-key">"summary"</span>: <span class="s-val">"sa"</span> <span class="s-str">}</span><span class="s-str">,</span>
+    <span class="s-str">{</span> <span class="s-key">"summary"</span>: <span class="s-val">"sample"</span> <span class="s-str">}</span>
+  <span class="s-str">]</span>
+<span class="s-str">}</span>
+<span class="s-cmt"># Supports: string, number, integer, boolean, array, object</span>
+<span class="s-cmt"># Formats: date-time, email, uri, uuid, ipv4, base64</span></div>
+  </div>
+
   <!-- LINTER -->
   <div class="code-window" style="margin-top: 1.5rem;">
     <div class="code-window-tabs">
       <span class="tab active">intent-compiler in CI</span>
     </div>
     <div class="code-body"><span class="s-cmt"># .github/workflows/quality.yml</span>
-<span class="s-key">name:</span> Quality Check
-<span class="s-key">on:</span> [push, pull_request]
+<span class="s-key">name:</span> <span class="s-val">Quality Check</span>
+<span class="s-key">on:</span> <span class="s-str">[push, pull_request]</span>
 
 <span class="s-key">jobs:</span>
   <span class="s-key">lint:</span>
     <span class="s-key">steps:</span>
-      - <span class="s-kw">run:</span> pip install pyyaml jsonschema
-      - <span class="s-kw">run:</span> python cli.py lint protocols/ --strict</div>
+      - <span class="s-kw">run:</span> <span class="cmd-highlight">pip install pyyaml jsonschema</span>
+      - <span class="s-kw">run:</span> <span class="cmd-highlight">python cli.py lint protocols/ --strict</span></div>
   </div>
 </section>
 
@@ -1258,6 +1574,22 @@ document.addEventListener('DOMContentLoaded', function() {
     ta.value = SAMPLE_PROTOCOL;
     btn.addEventListener('click', resolve);
   }
+
+  // Workflow tabs
+  const wtabs = document.querySelectorAll('.wtab');
+  const wpanels = document.querySelectorAll('.wpanel');
+
+  wtabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-panel');
+
+      wtabs.forEach(t => t.classList.remove('active'));
+      wpanels.forEach(p => p.classList.remove('active'));
+
+      this.classList.add('active');
+      document.getElementById(targetId).classList.add('active');
+    });
+  });
 });
 </script>
 

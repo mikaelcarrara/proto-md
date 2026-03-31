@@ -297,6 +297,50 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate a structured prompt from the protocol slots",
     )
 
+    generate = sub.add_parser("generate", help="Generate code/artifacts from protocol")
+    generate.add_argument("path", help="Protocol file to use as base")
+    generate.add_argument(
+        "--mock",
+        action="store_true",
+        help="Generate mock API data from schema",
+    )
+    generate.add_argument(
+        "--ui",
+        action="store_true",
+        help="Generate HTML UI form from schema",
+    )
+    generate.add_argument(
+        "--title",
+        type=str,
+        default="Generated Form",
+        help="Title for the generated UI (default: 'Generated Form')",
+    )
+    generate.add_argument(
+        "--count",
+        type=int,
+        default=1,
+        help="Number of mock instances to generate (default: 1)",
+    )
+    generate.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducible mocks",
+    )
+    generate.add_argument(
+        "--format",
+        dest="output_format",
+        choices=["json", "yaml"],
+        default="json",
+    )
+    generate.add_argument(
+        "--out",
+        dest="out_file",
+        type=str,
+        default=None,
+        help="Write output to file (default: stdout)",
+    )
+
     return parser
 
 
@@ -371,6 +415,59 @@ def main(argv: List[str] | None = None) -> int:
         else:
             print(output)
         return result.get("exit_code", 0)
+
+    elif args.command == "generate":
+        result = resolve_file(args.path, "json")
+        if result.get("status") == "error":
+            err_output = {
+                "file": result["file"],
+                "status": "error",
+                "errors": result.get("errors", []),
+                "warnings": result.get("warnings", []),
+            }
+            print(json.dumps(err_output, indent=2, ensure_ascii=False), file=sys.stderr)
+            return 1
+
+        schema = result.get("artifact", {}).get("schema")
+        if not schema:
+            print("No schema found in protocol", file=sys.stderr)
+            return 1
+
+        if args.mock:
+            from mock_generator import generate_multiple_mocks
+            mocks = generate_multiple_mocks(schema, count=args.count, seed=args.seed)
+
+            if args.output_format == "yaml":
+                try:
+                    import yaml
+                    output = yaml.dump({"mocks": mocks}, default_flow_style=False, sort_keys=False)
+                except ImportError:
+                    print("yaml library required for YAML output: pip install pyyaml", file=sys.stderr)
+                    return 2
+            else:
+                output = json.dumps({"mocks": mocks}, indent=2, ensure_ascii=False)
+
+            if args.out_file:
+                with open(args.out_file, "w", encoding="utf-8") as f:
+                    f.write(output)
+            else:
+                print(output)
+            return 0
+
+        if args.ui:
+            from ui_generator import generate_ui
+            title = args.title or result.get("artifact", {}).get("frontmatter", {}).get("protocol_name", "Generated Form")
+            html = generate_ui(schema, title=title)
+
+            if args.out_file:
+                with open(args.out_file, "w", encoding="utf-8") as f:
+                    f.write(html)
+            else:
+                print(html)
+            return 0
+
+        print("No generator specified. Use --mock or --ui.", file=sys.stderr)
+        return 2
 
     return 0
 

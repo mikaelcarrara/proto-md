@@ -57,8 +57,8 @@ O produto resolve um problema real: **Markdown virou interface universal de dev*
 ## Próximos passos
 
 ### Output model
-- [ ] Geração de mocks de API a partir de schema
-- [ ] UI renderizada (componentes) a partir de protocolo
+- [x] Geração de mocks de API a partir de schema
+- [x] UI renderizada (componentes) a partir de protocolo
 
 ### Produto e DX
 - [ ] CLI mais intuitiva com commands alias (`intent lint` → `intent check`)

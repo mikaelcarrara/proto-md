@@ -83,11 +83,6 @@ class SchemaValidator:
                     data=output_data
                 )
             
-            # Validar constraints adicionais
-            additional_validation = self._validate_additional_constraints(output_data, schema)
-            errors.extend(additional_validation.errors)
-            warnings.extend(additional_validation.warnings)
-            
             return ValidationResult(
                 is_valid=len(errors) == 0,
                 errors=errors,
@@ -103,60 +98,7 @@ class SchemaValidator:
                 data=output_data
             )
     
-    def _validate_additional_constraints(self, data: Any, schema: Dict[str, Any]) -> ValidationResult:
-        """
-        Valida constraints adicionais que não são cobertas por JSON Schema padrão
-        """
-        errors = []
-        warnings = []
-        
-        # Validar ranges numéricos customizados
-        if isinstance(data, dict) and 'properties' in schema:
-            for prop_name, prop_schema in schema['properties'].items():
-                if prop_name in data:
-                    prop_value = data[prop_name]
-                    
-                    # Validar ranges de string
-                    if prop_schema.get('type') == 'string':
-                        if 'minLength' in prop_schema and len(prop_value) < prop_schema['minLength']:
-                            errors.append(f"Propriedade '{prop_name}' muito curta: {len(prop_value)} < {prop_schema['minLength']}")
-                        
-                        if 'maxLength' in prop_schema and len(prop_value) > prop_schema['maxLength']:
-                            errors.append(f"Propriedade '{prop_name}' muito longa: {len(prop_value)} > {prop_schema['maxLength']}")
-                    
-                    # Validar ranges numéricos
-                    elif prop_schema.get('type') in ['number', 'integer']:
-                        if 'minimum' in prop_schema and prop_value < prop_schema['minimum']:
-                            errors.append(f"Propriedade '{prop_name}' abaixo do mínimo: {prop_value} < {prop_schema['minimum']}")
-                        
-                        if 'maximum' in prop_schema and prop_value > prop_schema['maximum']:
-                            errors.append(f"Propriedade '{prop_name}' acima do máximo: {prop_value} > {prop_schema['maximum']}")
-                    
-                    if 'enum' in prop_schema and prop_value not in prop_schema['enum']:
-                        errors.append(f"Propriedade '{prop_name}' tem valor inválido: {prop_value} não está em {prop_schema['enum']}")
-        
-        # Validar estrutura de arrays
-        if isinstance(data, list) and schema.get('type') == 'array':
-            if 'minItems' in schema and len(data) < schema['minItems']:
-                errors.append(f"Array muito pequeno: {len(data)} < {schema['minItems']}")
-            
-            if 'maxItems' in schema and len(data) > schema['maxItems']:
-                errors.append(f"Array muito grande: {len(data)} > {schema['maxItems']}")
-            
-            # Validar itens do array
-            if 'items' in schema:
-                item_schema = schema['items']
-                for i, item in enumerate(data):
-                    item_validation = self.validate_output(item, item_schema)
-                    if not item_validation.is_valid:
-                        errors.extend([f"Item {i}: {error}" for error in item_validation.errors])
-        
-        return ValidationResult(
-            is_valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings,
-            data=data
-        )
+
     
     def generate_schema_from_example(self, example_data: Any, title: str = "Generated Schema") -> Dict[str, Any]:
         """
@@ -308,7 +250,7 @@ class ProtocolValidator:
         """
         try:
             # Importar parser dinamicamente para evitar dependência circular
-            from parser import ProtocolParser
+            from intent_compiler.parser import ProtocolParser
             self.parser = ProtocolParser()
             
             # Parsear o arquivo

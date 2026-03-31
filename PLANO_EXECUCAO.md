@@ -64,10 +64,10 @@ O produto resolve um problema real: **Markdown virou interface universal de dev*
 - [ ] CLI mais intuitiva com commands alias (`intent lint` → `intent check`)
 - [ ] Mensagens de erro com contexto de linha e seção
 - [ ] `intent init` — scaffold de novo protocolo
-- [ ] `intent generate` — emite código/mocks/prompts a partir de protocolo
+- [x] `intent generate` — emite código/mocks/prompts a partir de protocolo
 
 ### Ecossistema
-- [ ] SDK Python (publicação em PyPI)
+- [x] SDK Python (pronto para pacote com build nativo de `pyproject.toml`)
 - [ ] SDK TypeScript (publicação em npm)
 - [ ] VS Code Extension com hover, autocomplete e lint inline
 

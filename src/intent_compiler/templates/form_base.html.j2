@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0d0d0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #16161a;
+      border: 0.5px solid #2a2a30;
+      border-radius: 8px;
+      padding: 2rem;
+    }
+
+    .title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #e8c46a;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #a0a0a0;
+      margin-bottom: 0.5rem;
+    }
+
+    .required {
+      color: #c07070;
+      margin-left: 4px;
+    }
+
+    .hint {
+      display: block;
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .input, .select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      background: #1e1e24;
+      border: 0.5px solid #2a2a30;
+      border-radius: 4px;
+      color: #e0e0e0;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input:focus, .select:focus {
+      border-color: #e8c46a;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #e8c46a;
+    }
+
+    .checkbox-text {
+      font-size: 0.875rem;
+      color: #e0e0e0;
+    }
+
+    .array-field .array-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .array-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .array-item .input {
+      flex: 1;
+    }
+
+    .btn-add, .btn-remove {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border: 0.5px solid #2a2a30;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-add {
+      background: #1e1e24;
+      color: #e8c46a;
+    }
+
+    .btn-add:hover {
+      background: #2a2a30;
+    }
+
+    .btn-remove {
+      background: transparent;
+      color: #c07070;
+      padding: 0.5rem;
+    }
+
+    .btn-remove:hover {
+      background: rgba(192, 112, 112, 0.1);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #e8c46a;
+      color: #0d0d0f;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.85;
+    }
+
+    .output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #1e1e24;
+      border: 0.5px solid #2a2a30;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    .output.visible {
+      display: block;
+    }
+
+    .output-label {
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">{{ title }}</h1>
+    <p class="subtitle">Generated from JSON Schema</p>
+
+    <form id="generatedForm" onsubmit="handleSubmit(event)">
+{{ fields | safe }}
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+
+    <div class="output" id="output">
+      <div class="output-label">JSON Output</div>
+      <pre id="outputContent"></pre>
+    </div>
+  </div>
+
+  <script>
+    function addItem(containerId, min, max) {
+      const container = document.getElementById(containerId);
+      const itemCount = container.children.length;
+      if (itemCount >= max) return;
+
+      const firstItem = container.children[0];
+      const newItem = firstItem.cloneNode(true);
+      newItem.querySelector('input').value = '';
+      container.appendChild(newItem);
+    }
+
+    function removeItem(btn) {
+      const container = btn.parentElement.parentElement;
+      if (container.children.length > 1) {
+        btn.parentElement.remove();
+      }
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('generatedForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      document.getElementById('outputContent').textContent = JSON.stringify(data, null, 2);
+      document.getElementById('output').classList.add('visible');
+    }
+  </script>
+</body>
+</html>

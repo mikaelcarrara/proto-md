@@ -196,7 +196,7 @@ class ProtocolParser:
     
     def _parse_sections(self, content: str) -> Dict[str, Any]:
         """
-        Parse seções do markdown (Context, Slots, Constraints, etc.)
+        Parse seções do markdown usando AST seguro
         """
         sections = {
             'context': '',
@@ -206,25 +206,35 @@ class ProtocolParser:
             'slot_warnings': []
         }
         
-        # Encontrar seções de nível 2 (##)
-        section_pattern = re.compile(r'^##\s+(.+?)\s*$\n(.*?)(?=^##|\Z)', re.MULTILINE | re.DOTALL)
+        from markdown_it import MarkdownIt
+        md = MarkdownIt("commonmark")
+        tokens = md.parse(content)
         
-        for match in section_pattern.finditer(content):
-            section_title = match.group(1).strip().lower()
-            section_content = match.group(2).strip()
+        h2_headings = []
+        for i, token in enumerate(tokens):
+            if token.type == "heading_open" and token.tag == "h2":
+                if i + 1 < len(tokens):
+                    title = tokens[i+1].content.strip().lower()
+                    start_line = token.map[0] if token.map else 0
+                    h2_headings.append((title, start_line))
+        
+        lines = content.split('\n')
+        for idx, (title, start_line) in enumerate(h2_headings):
+            if title not in ['context', 'slots', 'constraints', 'schema']:
+                continue
             
-            if section_title == 'context':
+            next_start_line = h2_headings[idx+1][1] if idx + 1 < len(h2_headings) else len(lines)
+            section_content = '\n'.join(lines[start_line+1:next_start_line]).strip()
+            
+            if title == 'context':
                 sections['context'] = section_content
-            
-            elif section_title == 'slots':
+            elif title == 'slots':
                 self.last_slot_warnings = []
                 sections['slots'] = self._parse_slots(section_content)
                 sections['slot_warnings'].extend(self.last_slot_warnings)
-            
-            elif section_title == 'constraints':
+            elif title == 'constraints':
                 sections['constraints'] = self._parse_constraints(section_content)
-            
-            elif section_title == 'schema':
+            elif title == 'schema':
                 sections['schema'] = self._parse_schema(section_content)
         
         return sections

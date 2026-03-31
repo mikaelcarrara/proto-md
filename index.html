@@ -933,7 +933,7 @@
   </div>
   <div class="hero-install">
     <span class="prompt">$</span>
-    <span class="cmd">python cli.py lint protocols</span>
+    <span class="cmd">intent lint protocols</span>
   </div>
 </div>
 
@@ -1244,7 +1244,7 @@ You are a sentiment analyst.
       <div class="code-window-tabs">
         <span class="tab active">CLI</span>
       </div>
-      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py lint protocols --format compact</span>
+      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">intent lint protocols --format compact</span>
 
 <span class="s-err">x</span>  invalid_protocol.md <span class="s-err">2e</span> <span class="s-warn">0w</span>
 <span class="s-ok">v</span>  valid_protocol.md  <span class="s-ok">0e</span> <span class="s-warn">0w</span>
@@ -1255,7 +1255,7 @@ You are a sentiment analyst.
       <div class="code-window-tabs">
         <span class="tab active">intent resolve</span>
       </div>
-      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py resolve protocol.md</span>
+      <div class="code-body"><span class="s-cmt">$</span> <span class="cmd-highlight">intent resolve protocol.md</span>
 <span class="s-str">{</span>
   <span class="s-key">"sentiment"</span>:   <span class="s-val">"positive"</span><span class="s-str">,</span>
   <span class="s-key">"confidence"</span>:  <span class="s-val">0.92</span><span class="s-str">,</span>
@@ -1270,7 +1270,7 @@ You are a sentiment analyst.
       <span class="tab active">intent generate --mock</span>
     </div>
     <div class="code-body"><span class="s-cmt"># Generate mock API data from JSON Schema</span>
-<span class="s-cmt">$</span> <span class="cmd-highlight">python cli.py generate protocol.md --mock --count 3</span>
+<span class="s-cmt">$</span> <span class="cmd-highlight">intent generate protocol.md --mock --count 3</span>
 <span class="s-str">{</span>
   <span class="s-key">"mocks"</span>: <span class="s-str">[</span>
     <span class="s-str">{</span> <span class="s-key">"summary"</span>: <span class="s-val">"sample"</span> <span class="s-str">}</span><span class="s-str">,</span>
@@ -1295,7 +1295,7 @@ You are a sentiment analyst.
   <span class="s-key">lint:</span>
     <span class="s-key">steps:</span>
       - <span class="s-kw">run:</span> <span class="cmd-highlight">pip install pyyaml jsonschema</span>
-      - <span class="s-kw">run:</span> <span class="cmd-highlight">python cli.py lint protocols/ --strict</span></div>
+      - <span class="s-kw">run:</span> <span class="cmd-highlight">intent lint protocols/ --strict</span></div>
   </div>
 </section>
 
@@ -1373,8 +1373,8 @@ You are a sentiment analyst.
       <div>
         <h4>Lint before you commit</h4>
         <p>Run `proto lint` locally and in CI. If slots are mismatched or schema is missing, the pipeline fails with exit code 1.</p>
-        <code class="code-inline"><span class="s-cmt">$ </span>python cli.py lint protocols
-<span class="s-cmt">$ </span>python -m unittest -v</code>
+        <code class="code-inline"><span class="s-cmt">$ </span>intent lint protocols
+<span class="s-cmt">$ </span>pytest tests/ -v</code>
       </div>
     </div>
 
@@ -1595,3 +1595,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+

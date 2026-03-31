@@ -2,8 +2,7 @@ import yaml
 import re
 from pathlib import Path
 from typing import Optional
-
-from validator import DEFAULT_LINT_CONFIG, LintConfig, LintRule
+from intent_compiler.validator import DEFAULT_LINT_CONFIG, LintConfig, LintRule
 
 CONFIG_FILE = ".intent.yaml"
 

@@ -53,25 +53,25 @@ pip install pyyaml jsonschema
 
 ```bash
 # Lint protocols
-python cli.py lint protocols/
+intent lint protocols/
 
 # Resolve to artifact
-python cli.py resolve protocol.md --output json
+intent resolve protocol.md --output json
 
 # Generate mocks from schema
-python cli.py generate protocol.md --mock --count 3
+intent generate protocol.md --mock --count 3
 
 # Generate UI form from schema
-python cli.py generate protocol.md --ui --out form.html
+intent generate protocol.md --ui --out form.html
 ```
 
 ### Programmatic Usage
 
 ```python
-from parser import ProtocolParser
-from validator import SchemaValidator
-from mock_generator import generate_mock
-from ui_generator import generate_ui
+from intent_compiler.parser import ProtocolParser
+from intent_compiler.validator import SchemaValidator
+from intent_compiler.generators.mock_generator import generate_mock
+from intent_compiler.generators.ui_generator import generate_ui
 
 # Parse protocol
 protocol = ProtocolParser().parse_file("protocol.md")
@@ -99,7 +99,7 @@ html = generate_ui(schema, title="User Form")
 
 ### Schema Validation
 ```bash
-$ python cli.py lint output.json
+$ intent lint output.json
 ✓ valid — schema matches, types correct
 ```
 
@@ -113,7 +113,7 @@ $ python cli.py lint output.json
 ```bash
 # .github/workflows/quality.yml
 - name: Lint Protocols
-  run: python cli.py lint protocols/ --strict
+  run: intent lint protocols/ --strict
 # Exit 0 = merge allowed, Exit 1 = PR blocked
 ```
 
